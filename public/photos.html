@@ -6,7 +6,7 @@
 	<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 	<link rel="stylesheet" href="layout.css" type="text/css">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+	<script src="signup.js"></script>
 	</head>
 <body>
 	<div class="header"></div>
@@ -15,13 +15,7 @@
 	</div>
 	<div class="container">
 		<div class="header-nav">
-		<nav>
-			<ul>
-			<li><a href="index.html">Home</a></li><!-- <li><a href="/">Home</a></li> -->
-			<li><a href="#upload" id="upload">Uploads</a></li><!-- <li><a href="/uploads">Uploads</a></li> -->
-			<li><a href="photos.html" id="photos">Photos</a></li><!-- <li><a href="/photos">Photos</a></li> -->
-			</ul>
-		</nav>
+			s
 		</div>
 		<div class="profile-pic">h</div>
 			<div class="main">
@@ -37,7 +31,8 @@
 					<div class="rt-span">
 					<span class="glyphicon glyphicon-camera icon-bg-grey"></span>
 					</div>
-					<div class="rt-span" id="show-photos" name="upload">
+					<div class="rt-span">
+						<a href="view.html"><div class="thumb-placeholder"></div></a>
 						<div class="thumb-placeholder"></div>
 						<div class="thumb-placeholder"></div>
 						<div class="thumb-placeholder"></div>
@@ -46,15 +41,6 @@
 						<div class="thumb-placeholder"></div>
 						<div class="thumb-placeholder"></div>
 						<div class="thumb-placeholder"></div>
-						<div class="thumb-placeholder"></div>
-					</div>
-					<div class="form-contain" id="form-contain">
-					<form action="images/upload" method="post" enctype="multipart/form-data">
-						<label for="image">Choose Photos</label>
-						<input type="file" name="image">
-						<br>
-						<input type="submit" name="submit" value="Upload" class="submit">
-					</form>
 					</div>
 				</div>
 
@@ -64,6 +50,6 @@
 
 			</div>
 	</div>
-<script src="form.js"></script>
+
 </body>
 </html>
