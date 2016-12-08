@@ -1,59 +1,58 @@
-var express = require('express');
+var express =require("express");
 var app = express();
-var bodyParser = require('body-parser');
-var Sequelize = require('sequelize');
-var database = 'sqlite://databse.sqlite3';
-var sequelize = new Sequelize(process.env.DATABASE_URL || database)
-var cookieSession = require('cookie-session');
-var passwordHash = require('password-hash');
 var port = 3000;
+var bodyParser = require('body-parser');
+var fs = require('fs');
+var multer  = require('multer');
+var upload = multer({ dest: 'img/' });
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-app.set('view engine', 'ejs');
+app.use(express.static('public'));
+app.set("view engine", "ejs");
 
+var startTime;
 
-app.get('/', function(req, res){
-  res.send('Welcome to home Page');
+app.get('/', function (req, res){
+  startTime=new Date();
+  console.log("index page started @" + startTime);
+  res.send('index');
 });
 
-var User = sequelize.define('user', {
-        username: Sequelize.STRING,
-        password: Sequelize.STRING
-    });
-
-app.get('/log_in', function(req,res){
-    var post = req.body;
-  if (post.username === User.findAOne({where:{req.body.username}}) && post.password === User.findOne({where:{post.password}})) {
-    
-    res.redirect('/');
-  } else {
-    res.send('Bad user/pass');
-  }
+app.get('/pages/photos', function (req, res){
+  startTime=new Date();
+  console.log("photos page started @" + startTime);
+  res.send('photos');
 });
 
-app.get('/sing_up', function(req,res){
-    var User = sequelize.define('user', {
-        username: Sequelize.STRING,
-        password: Sequelize.STRING
-    });
-    res.render('users/new');
+app.get('/pages/view', function (req, res){
+  startTime=new Date();
+  console.log("view main photo page started @" + startTime);
+  res.send('view');
 });
 
-app.post('/user/sign_up', function(req,res){
-    sequelize.sync().then(function(){
-        return User.create({
-            username: req.body.username,
-            password: passwordHash.generate(req.body.password)
-        }).then(function(users){
-            var hashedPassword = passwordHash.generate(req.body.password);
-            console.log(hashedPassword);
-            console.log(passwordHash.verify(req.body.password, hashedPassword));
-            res.render('users/show', {user:users});
-        });
-    })
+app.post('/uploads', upload.single('img'), function (req, res) {
+	var fileName=req.file.filename;
+	var  mimetype=req.file.mimetype;
+	var ext;
+	if (mimetype== "image/jpeg" ||  mimetype== "image/jpg"){
+		ext="jpg";
+	}
+	else if(mimetype== "image/png"){
+		ext="png";
+	}
+	else if(mimetype== "image/gif"){
+		ext="gif";
+	} 
+	
+	var newFileName= fileName +"."+ ext;
+	fs.rename('./img/' + fileName, './img/'+ newFileName , (err) => {
+	if (err) throw err;
+	console.log('rename complete');
+});
+
+  console.log(newFileName);
+ res.send('view'); 
 });
 
 app.listen(port, function(){
-  console.log('Server is running on  port' + port);
+console.log('server started on port '+ port);
 });
