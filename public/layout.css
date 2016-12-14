@@ -129,9 +129,8 @@ nav li a:hover{
 	float: left;
 	width: 97%;
 	height: auto;
-	padding: 20px;
+	padding: 2px;
 	margin: 0 5px 5px 0;
-	background: #00AB67;
 	border:2px solid #F5F5F5;
 }
 .comment-container{
@@ -154,7 +153,9 @@ nav li a:hover{
 	font-size: 24px;
 }
 
-
+.liked{
+	color: #
+}
 .com-ctn {
 	float: left;
 	width: 100%;
@@ -195,21 +196,43 @@ nav li a:hover{
 	background:#F1F1F2;
 	padding: 10px;
 }
+
 .form-contain input[type=file]{
 	background:#D5D7DE;
 	width: 97%;
 	padding:12px 5px;
 	margin:0 0 0 8px;
 }
-.form-contain label{
-	margin-left:8px;
+.form-contain textarea {
+	background:#FFF;
+	border:1px solid #F1F1F1;
+	width: 97%;
+	height:auto;
+	padding:12px 10px;
+	margin:0 0 10px 8px;
+}
+.form-contain label, .new-form-contain label{
+	margin:0 10px 0 8px;
 	padding: 10px 0;
 	color:#4A4A4A;
+}
+.new-form-contain{
+	float: left;
+	width:97%;
+	margin:0 auto;
+	padding: 10px;
+}
+.new-form-contain input[type=text]{
+	background:#FFF;
+	border:1px solid #F1F1F1;
+	width: 150px%;
+	padding:8px 10px;
+	margin:0 0 10px 0;
 }
 .submit{
 	margin:5px 0 0 8px;
 	background: #00AB67;
-	padding: 10px 20px;
+	padding: 8px 20px;
 	color:#FFF;
 	border:none;
 }

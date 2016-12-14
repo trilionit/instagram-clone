@@ -1,0 +1,47 @@
+<% include templates/header.ejs %>
+	<div class="wide-panel">
+	d
+	</div>
+	<div class="container">
+		<div class="header-nav">
+			<% include templates/mid-nav.ejs %>
+		</div>
+		<div class="profile-pic">h</div>
+			<div class="main">
+				<div class="left">
+				<span>
+					<h3>Prince</h3>
+					<em>God's Shaped Hope</em><br><br>
+					<p><span class="glyphicon glyphicon-map-marker"></span> &nbsp Elizabeth NJ 07206</p>
+				</span>
+				</div>
+				<%=upl[0].caption  %>
+				<div class="right">
+					<div class="rt-span">
+					<span class="glyphicon glyphicon-camera icon-bg-grey"></span> <%=upl[0].length %>
+					</div>
+					<div class="rt-span">
+						<div class="img-placeholder">
+							<img src='../img/<%= uploaded[0].filename %>' width='100%' height='' alt='<%= uploaded[0].caption %>'  />
+						</div>
+						<div class="tag-ctn">
+							<div class="new-tag">
+								<!-- <% if tagged.length > 0 { %>
+								<%= tagged[0].tagName %>
+							<% } %> -->
+							</div>
+						</div>
+						<div class="new-form-contain">
+						<form action="/add" method="post">
+							<label for="caption">Add Tags</label>
+							<input type="text" name="tag" />
+							<input type="hidden" name="photoid" value="<% upl[0].id %>">
+							<input type="submit" name="submit" value="Add" class="submit">
+						</form>
+						</div>
+						</div>
+						
+					</div>
+				</div>
+
+<% include templates/footer.ejs %>
