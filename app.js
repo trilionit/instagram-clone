@@ -6,23 +6,22 @@ var bodyParser = require('body-parser');
 var fs = require('fs');
 var multer  = require('multer');
 var upload = multer({ dest: './img' });
-//db
+
 var Sequelize = require('sequelize');
-var databaseURL = 'sqlite://instagram.sqlite3';
-var sequelize = new Sequelize(process.env.DATABASE_URL || databaseURL
-// 	, {
-// 	//omitNull: true
-// }
-);
-// var Sequelize = require("sequelize");
-// var sequelize = new Sequelize('instagram', 'root', null, {
-// 	host: 'localhost',
-// 	dialect: 'sqlite',
-// 	storage: '../db/instagram.db'
-// });
+// var dbUrl='postgres://instagram.db:';
+// var sequelize = new Sequelize(dbUrl);
+
+var sequelize = new Sequelize('instagram', 'postgres', '123456', {
+  host: 'localhost',
+  port:'5432',
+  dialect:'postgres'
+});
+
 app.use(express.static('public'));
 app.set("view engine", "ejs");
-
+app.use(
+  bodyParser.urlencoded({extended:true })
+);
 var startTime;
 
 //create database tables
@@ -56,7 +55,7 @@ var tags = sequelize.define('tags', {
 comments.belongsTo(users);
 comments.belongsTo(photos);
 tags.belongsTo(photos);
-//sequelize.sync();
+sequelize.sync();
 
 var userId=1;
 
@@ -64,32 +63,6 @@ app.get('/', function (req, res){
 	startTime=new Date();
 	console.log("index page started @" + startTime);
 	res.send('index');
-});
-
-app.get('/pages/uploaded', function (req, res){
-	startTime=new Date();
-
-	photos.findAll().then(function(upl) {
-	//var newObject=uploadObject.datavalues;
-	console.log("Uploaded page started @" + startTime);
-	res.render('uploaded', {uploaded:upl});
-	});
-	
-});
-
-
-app.post('/add', function (req, res){
-	var newTag= req.body.tag;
-	var photoId=req.body.photoid;
-	sequelize.sync().then(function(){
-    return tags.create({
-	    tagName: newTag,
-	    photoid: photoId
-		});
-    });
-	tags.findAll().then(function(tagged) {
-	res.render('uploaded', {tagged:tagged});
-	});
 });
 
 //----------- Upload Photos ---------------------------------
@@ -122,12 +95,46 @@ app.post('/uploads', upload.single('img'), function (req, res) {
 	    userId:userId,
 	    caption: req.body.caption
 		});
+    	var tagName="photos";
+    	tags.create({
+    	tagName: tagName
+    	})
 
 	});
 	//console.log(fileName);
 	res.redirect('/pages/uploaded'); 
 	
 });
+
+app.get('/pages/uploaded', function (req, res){
+	startTime=new Date();
+
+	photos.findAll().then(function(query) {
+	
+	// tags.findAll().then(function(tagged) {
+	// var hub=[upl, tagged];
+	// });
+
+	console.log("Uploaded page started @" + startTime);
+	console.log("ID | CAPTION | FILENAME");
+	console.log(query[0].id + " | "+ query[0].caption + " | " + query[0].filename);
+	res.render('hub', {upl:query});
+	});
+});
+
+app.post('/add', function (req, res){
+	var newTag= req.body.tag;
+	var photoId=req.body.photoid;
+	tags.sync().then(function(){
+    return tags.create({
+	    tagName: newTag,
+	    photoId: photoId
+		});
+    });
+	res.redirect('/pages/uploaded');
+	});
+
+
 
 app.listen(port, function(){
 console.log('server started on port '+ port);
