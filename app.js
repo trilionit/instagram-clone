@@ -1,7 +1,8 @@
 var express =require("express");
 var app = express();
 var port = 3000;
-
+var jsonfile = require('jsonfile');
+var file = './photos.json'
 var bodyParser = require('body-parser');
 var fs = require('fs');
 var multer  = require('multer');
@@ -89,7 +90,7 @@ app.post('/uploads', upload.single('img'), function (req, res) {
 	});
 
 	//insert into db
-	sequelize.sync().then(function(){
+//	sequelize.sync().then(function(){
     return photos.create({
 	    filename: newFileName,
 	    userId:userId,
@@ -100,7 +101,7 @@ app.post('/uploads', upload.single('img'), function (req, res) {
     	tagName: tagName
     	})
 
-	});
+	//});
 	//console.log(fileName);
 	res.redirect('/pages/uploaded'); 
 	
@@ -111,28 +112,66 @@ app.get('/pages/uploaded', function (req, res){
 
 	photos.findAll().then(function(query) {
 	
-	// tags.findAll().then(function(tagged) {
-	// var hub=[upl, tagged];
-	// });
-
+		tags.findAll({
+			where:{
+				photoId:query[0].id
+			}
+		}).then(function(tagged) {
+		var hub=[query, tagged];
+	
 	console.log("Uploaded page started @" + startTime);
-	console.log("ID | CAPTION | FILENAME");
-	console.log(query[0].id + " | "+ query[0].caption + " | " + query[0].filename);
-	res.render('hub', {upl:query});
+	console.log("ID | CAPTION | FILENAME ");
+	console.log(query[0].id + " | " + query[0].caption + " | " + query[0].filename);
+	console.log("| PHOTO ID | TAGNAME |");
+	console.log(tagged[0].photoId + " " + tagged[0].tagName);
+	res.render('hub', {upl:hub});
+		});
 	});
 });
 
 app.post('/add', function (req, res){
 	var newTag= req.body.tag;
-	var photoId=req.body.photoid;
-	tags.sync().then(function(){
-    return tags.create({
-	    tagName: newTag,
-	    photoId: photoId
+	var pId=req.body.photoid;
+	console.log(pId + " " + newTag);
+	//tags.sync().then(function(){
+ 	return tags.create({
+	tagName: newTag,
+	photoId: pId
 		});
-    });
+    //});
 	res.redirect('/pages/uploaded');
 	});
+
+app.get('/photos', function (req, res){
+	startTime=new Date();
+	console.log("1. photos page started @" + startTime);
+	photos.findAll().then(function(photoQuery) {
+
+	var photoData = {}
+	photoData.photoTable = []
+	for (i=0; i <photoQuery.length ; i++){
+   	var vals = {
+       id: photoQuery[0].id,
+       photoName: photoQuery[0].filename,
+       caption:photoQuery[0].caption,
+       createdAt:photoQuery[0].createdAt
+  	}
+   	photoData.photoTable.push(vals)
+		}
+	fs.writeFile (file, JSON.stringify(photoData), function(err) {
+    if (err) throw err;
+    console.log('2. complete');
+    	}
+	);
+
+// jsonfile.writeFile(file, JSON.stringify(photoQuery[0]), function (err) {
+//   console.error(err);
+// })
+	
+	console.log("3. " + photoQuery);
+	res.render('photos', {upl:photoQuery});
+	});
+});
 
 
 

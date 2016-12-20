@@ -186,6 +186,22 @@ nav li a:hover{
 	margin:0 0 0 -10px;
 	border:none;
 }
+.tag-ctn{
+	float: left;
+	width: 100%;
+}
+.new-tag{
+	float: left;
+	width: auto;
+	padding:5px 10px;
+	margin: 5px 10px 5px 0;
+	font-size: 10px;
+	color: #585858;
+	background: #F1F1F2;
+	border:1px solid #CCC;
+	text-transform: uppercase;
+}
+
 #form-contain{
 	display: none;
 }
