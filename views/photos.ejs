@@ -1,3 +1,18 @@
-<% for(var i = 0; i < upl[1].length; i++){ %>
-<img src='../../../img/<%= upl[0].filename %>' width='100%' height='' alt='<%= upl[0].caption %>'  />
-<% } %>
+<% include templates/top.ejs %>
+	
+				<div class="right">
+					<div class="rt-span">
+					<span class="glyphicon glyphicon-camera icon-bg-grey"></span> &nbsp <%=upl.length %>
+					</div>
+					<div class="rt-span">
+
+					<% for(var i = 0; i < upl.length; i++){ %>
+						<a href="/photos/<%= upl[i].id %>"><div class="thumb-placeholder">
+					<img src="../img/<%= upl[i].filename %>" width="100%" height="100%" alt="<%= upl[i].caption %>" />
+						</div></a>
+					<% } %>
+
+					</div>
+				</div>
+
+<% include templates/footer.ejs %>

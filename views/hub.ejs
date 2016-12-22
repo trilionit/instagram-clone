@@ -1,50 +1,32 @@
-<% include templates/header.ejs %>
-	<div class="wide-panel">
-	d
+<% include templates/top.ejs %>
+<div class="right">
+	<div class="rt-span">
+	<span class="glyphicon glyphicon-camera icon-bg-grey"></span> &nbsp &nbsp 
 	</div>
-	<div class="container">
-		<div class="header-nav">
-			<% include templates/mid-nav.ejs %>
+	<div class="rt-span">
+		<div class="img-placeholder">
+			<img src="../../img/<%=upl.photoValues[0].filename %>" width="100%" height='' alt="<%=upl.photoValues[0].filename %>"  />
 		</div>
-		<div class="profile-pic">h</div>
-			<div class="main">
-				<div class="left">
-				<span>
-					<h3>Prince</h3>
-					<em>God's Shaped Hope</em><br><br>
-					<p><span class="glyphicon glyphicon-map-marker"></span> &nbsp Elizabeth NJ 07206</p>
-				</span>
-				</div>
-				<%=upl[1][0].length  %>
-				<div class="right">
-					<div class="rt-span">
-					<span class="glyphicon glyphicon-camera icon-bg-grey"></span> &nbsp<%=upl[0][0].caption %>
-					</div>
-					<div class="rt-span">
-						<div class="img-placeholder">
-							<img src='../img/<%= upl[0][0].filename %>' width='100%' height='' alt='<%= upl[0][0].caption %>'  />
-						</div>
-						<div class="tag-ctn">
-						<div class="new-tag">new tag</div>
-						<% for(var i = 0; i < upl[1].length; i++){ %>
-							<div class="new-tag">
-							
-							<%=upl[1][0].tagName %>
-							
-							</div>
-						<% } %>
-						</div>
-						<div class="new-form-contain">
-						<form action="/add" method="post">
-							<label for="caption">Add Tags</label>
-							<input type="text" name="tag" />
-							<input type="hidden" name="photoid" value="<%=upl[0][0].id %>">
-							<input type="submit" name="submit" value="Add" class="submit">
-						</form>
-						</div>
-						</div>
+		
+		<div class="tag-ctn">
+		<% for(var i = 0; i < upl.tagValues.length; i++){ %>
+	<div class="new-tag">
+		<%= upl.tagValues[i].tagName %>
+	
+	</div>
+<% } %>
+	</div>
+	<div class="new-form-contain">
+	<form action="/add" method="post">
+		<label for="caption">Add Tags</label>
+		<input type="text" name="tag" />
+		<input type="hidden" name="photoid" value="<%=upl.photoValues[0].id %>">
+		<input type="submit" name="submit" value="Add" class="submit">
+	</form>
+	</div>
+	</div>
 						
-					</div>
-				</div>
+</div>
+</div>
 
 <% include templates/footer.ejs %>

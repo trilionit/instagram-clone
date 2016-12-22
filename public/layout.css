@@ -119,10 +119,8 @@ nav li a:hover{
 .thumb-placeholder{
 	float: left;
 	width: 83px;
-	height: 83px;
-	padding: 20px;
+	padding: 1px;
 	margin: 0 5px 5px 0;
-	background: #00AB67;
 	border:2px solid #F5F5F5;
 }
 .img-placeholder{
@@ -219,6 +217,13 @@ nav li a:hover{
 	padding:12px 5px;
 	margin:0 0 0 8px;
 }
+.form-contain input[type=text]{
+	background:#FFF;
+	border:1px solid #F1F1F1;
+	width: 100px;
+	padding:8px 10px;
+	margin:20px 0 10px 0;
+}
 .form-contain textarea {
 	background:#FFF;
 	border:1px solid #F1F1F1;
@@ -241,7 +246,7 @@ nav li a:hover{
 .new-form-contain input[type=text]{
 	background:#FFF;
 	border:1px solid #F1F1F1;
-	width: 150px%;
+	width: 150px;
 	padding:8px 10px;
 	margin:0 0 10px 0;
 }
