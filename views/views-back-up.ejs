@@ -1,0 +1,34 @@
+<% include templates/top.ejs %>
+<div class="right">
+	<div class="rt-span">
+	<span class="glyphicon glyphicon-camera icon-bg-grey"></span>
+	</div>
+<div class="rt-span">
+	<div class="img-placeholder">
+		<img src="../../img/<%=data.photoData.fileName %>" width="100%" height="" alt="<%=data.photoData.caption %>" />
+	</div>
+	<div class="comment-container">
+		<div class="likes-container">
+			<a href="" name="likes" id="likes"><span class="glyphicon glyphicon-heart-empty likes"></span></a> <span class="likes-count"><%= data.photoLikes.length %></span>
+		</div>
+		<% for (i=0; i < data.photoComments.length ; i++){ %>
+		<div class="com-ctn">
+			<span class="user-ctn">@<%= data.userData.firstName %></span>
+			<span class="user-comm">
+				<%= data.photoComments.[i].text %>	
+			</span>
+		</div>
+		<% } %>
+		<div class="comment-form">
+			<form action="/add/comment" method="post">
+			<input type="hidden" class="comment-box" name="photoid" value="<%=views.photoValues[0].photoId %>">
+			<input type="hidden" class="comment-box" name="userid" value="<%=views.photoUser[0].id %>">
+			<input type="text" class="comment-box" name="comment" placeholder="Type Your Comment Here...">
+			<input type="submit" name="submit-comment" class="submit" value="Post">
+			</form>
+		</div>
+	</div>
+	</div>
+</div>
+
+<% include templates/footer.ejs %>

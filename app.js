@@ -57,8 +57,11 @@ var Likes = sequelize.define('likes', {
 	liked:Sequelize.INTEGER
 });
 
+// Photos.addIndex('');
+// Comments.addIndex();
+// Tags.addIndex();
 //dummy user
-// users.create({
+// Users.create({
 // 	firstName: 'Prince',
 // 	lastName: 'Osei',
 // 	email: 'prince@trilionit.com',
@@ -77,7 +80,7 @@ var Likes = sequelize.define('likes', {
 // 	liked: 'prince@trilionit.com',
 //     });
 
-//photos.belongsTo(users);
+Photos.belongsTo(Users);
 Comments.belongsTo(Users);
 Comments.belongsTo(Photos);
 Tags.belongsTo(Photos);
@@ -85,8 +88,7 @@ Likes.belongsTo(Photos);
 Likes.belongsTo(Users);
 sequelize.sync();
 
-
-//userid
+//userid alt:sessionid with userid inclusive
 Users.findAll().then(function(rowUser) {
 
 			var userId= rowUser[0].id;
@@ -97,13 +99,13 @@ app.get('/', function (req, res){
 	startTime=new Date();
 	console.log("index page started @" + startTime);
 	Photos.findAll().then(function(query) {
-	console.log("ID | CAPTION | FILENAME ");
-	console.log(query[0].id + " | " + query[0].caption + " | " + query[0].filename);
+	// console.log("ID | CAPTION | FILENAME ");
+	// console.log(query[0].id + " | " + query[0].caption + " | " + query[0].filename);
 
 	res.render('index', {upl:query});
 		});
 });
-
+//POST ROUTES
 //----------- Upload Photos ---------------------------------
 app.post('/uploads', upload.single('img'), function (req, res) {
 	var fileName=req.file;
@@ -111,53 +113,100 @@ app.post('/uploads', upload.single('img'), function (req, res) {
 	var  mimetype=fileName.mimetype;
 	console.log(mimetype);
 	var ext;
-	if (mimetype== "image/jpeg" ||  mimetype== "image/jpg"){
+		if (mimetype== "image/jpeg" ||  mimetype== "image/jpg"){
 		ext="jpg";
-	}
-	else if(mimetype== "image/png"){
-		ext="png";
-	}
-	else if(mimetype== "image/gif"){
-		ext="gif";
-	} 
+		}
+		else if(mimetype== "image/png"){
+			ext="png";
+		}
+		else if(mimetype== "image/gif"){
+			ext="gif";
+		} 
 
 	var newFileName= imgName  +"."+ ext;
 	fs.rename(__dirname +'/public/img/' + imgName, __dirname +'/public/img/'+ newFileName , (err) => {
-	if (err) throw err;
-	console.log('rename completed as ' + newFileName);
-	});
+		if (err) throw err;
+		console.log('rename completed as ' + newFileName);
+		});
 
 	
 	//insert into db
 	//	sequelize.sync().then(function(){
-    	Photos.create({
-	    filename: newFileName,
-	    userId:userId,
-	    caption: req.body.caption
-		});
- 	Photos.findAll().then(function(query){
- 		var photoId= query[0].id;
- 		if(!req.body.tag){
+Photos.create({
+filename: newFileName,
+userId:userId,
+caption: req.body.caption
+	}).then(function(){
+	Photos.findAll().then(function(query){
+		return photoId= query[0].id;
+	}).then(function(){
+		if(!req.body.tag){
  			tagName="photo";
  		}
  		else{
  			tagName= req.body.tag;
  		}
- 		Tags.create({
-	    tagName: tagName,
-	    photoId:photoId
-		});
+		Tags.create({
+		    tagName: tagName,
+		    photoId:photoId
+	});
 
-	//console.log(fileName);
+ 	
 	res.redirect('/pages/uploaded/'+photoId); 
-	 	});
+			});
+	});
+});
+
+
+app.post('/add', function (req, res){
+	var newTag= req.body.tag;
+	var pId=req.body.photoid;
+	console.log(pId + " " + newTag);
+ 	Tags.create({
+	tagName: newTag,
+	photoId: pId
+    });
+	res.redirect('/pages/uploaded/'+ pId);
+});
+
+app.post('/add/comment', function (req, res){
+	var newComment= req.body.comment;
+	var pId=req.body.photoid;
+	var userId=req.body.userid;
+	var st=1;
+	console.log(pId + " " + userId + " " + newComment);
+	 	Comments.create({
+			comment: newComment,
+			photoId: pId,
+			userId: userId,
+			status: st
+	    });
+    console.log(pId);
+	res.redirect('/pages/photos/' + pId);
+	});
+});
+
+
+// GET ROUTERS
+
+app.get('/likes/userId/:id/photoId/:pId', function (req, res){
+	var uId=req.params.id;
+	var pId = req.params.pId;
+	var liked=1;
+	 	Likes.create({
+			liked: liked,
+			photoId: pId,
+			userId: uId
+	    });
+    console.log("done");
+	res.redirect('/pages/photos/' + pId);
 });
 
 app.get('/pages/uploaded/:id', function (req, res){
-	var img = req.params.id;
-	console.log(img);
+	var photoId = req.params.id;
+	console.log(photoId);
 	var hub={}
-	Photos.findAll({where:{id:1}}).then(function(photoQuery){
+	Photos.findAll({where:{id:photoId}}).then(function(photoQuery){
 	console.log(photoQuery[0].filename);
 		hub.photoValues =[]
 				var vals ={
@@ -186,18 +235,8 @@ app.get('/pages/uploaded/:id', function (req, res){
 	});	
 });
 
-app.post('/add', function (req, res){
-	var newTag= req.body.tag;
-	var pId=req.body.photoid;
-	console.log(pId + " " + newTag);
- 	Tags.create({
-	tagName: newTag,
-	photoId: pId
-    });
-	res.redirect('/pages/uploaded/'+ pId);
-});
 
-app.get('/photos', function (req, res){
+app.get('/pages/photos', function (req, res){
 	startTime=new Date();
 	console.log("1. photos page started @" + startTime);
 	Photos.findAll().then(function(photoQuery) {
@@ -206,90 +245,46 @@ app.get('/photos', function (req, res){
 	});
 });
 
-app.get('/photos/:id', function (req, res){
+app.get('/pages/photos/:id', function (req, res){
 	//show photos with comments
 	//1. photo with id :id
 	// 2. all comments associated with id :id
 	//likes associated with photo
 	var photoId=req.params.id;
-	console.log(photoId);
-	var photoData = {}
-	Photos.findById(photoId).then(function (rowPhoto){
-	
-	photoData.photoValues = []
-   	var vals = {
-		photoId:photoId,
-	    photoName: rowPhoto.filename,
-	    caption:rowPhoto.caption,
-	    createdAt:rowPhoto.createdAt
-  	}
-   	photoData.photoValues.push(vals);
+	var photoData = []
+	Photos.findOne({
+		where:{id: photoId}, 
+		attributes: ['id','userId','filename', 'caption', 'createdAt']
+	}).then(function (rowPhotos){
+			Comments.findAll({
+				where: {photoId:photoId}
+			}).then(function (rowComments){
+					Likes.findAll({
+						where:	{photoId: photoId}
+					}).then(function (rowLikes){
+						Users.findAll({
+							where:	{id: rowPhotos.userId}
+						}).then(function (userInfo){
 
-	Comments.findAll(
-		{where:
-			{photoId:photoId}
-		}).then(function(rowComments) {
-			console.log(rowComments);
-	photoData.photoComments = []
-	for (i=0; i < rowComments.length ; i++){
-   	vals = {
-       id: rowComments[i].id,
-       userId: rowComments[i].userId,
-       text:rowComments[i].comment,
-       createdAt:rowComments[i].createdAt
-  	}
-   	photoData.photoComments.push(vals);
-  }
-	
-	photoData.photoUser = []
-   	vals = {
-       id: rowUser[0].id,
-       firstName: rowUser[0].firstName,
-       lastName: rowUser[0].lastName
-  	}
-   	photoData.photoUser.push(vals);
-  
- //  	Likes.create({
-	// userId: rowUser[0].id,
-	// photoId: photoId,
-	// liked: 1,
- //    });
-   	Likes.findAll(
-		{where:
-			{photoId: photoId}
-		}).then(function(rowLikes) {
-	photoData.photoLikes = []
-   	vals = {
-       userId: rowLikes[0].id,
-       liked: rowLikes[0].liked
-  	}
-   	photoData.photoLikes.push(vals);
+			var data= {
+				photoData: rowPhotos,
+				commentData: rowComments,
+				likesData: rowLikes,
+				userInfo:userInfo
+			}
+			console.log("Likes " + data.likesData.length);
+			
+			res.render('views', {data:data})
 
-    console.log(photoData);
-	res.render('views', {views:photoData});
-		});
-	});
-});
+						})
+
+					})
+			})	
+	})
 
 });
 
-app.post('/add/comment', function (req, res){
-	var newComment= req.body.comment;
-	var pId=req.body.photoid;
-	var userId=req.body.userid;
-	var st=1;
-	console.log(pId + " " + newComment);
- 	Comments.create({
-	comment: newComment,
-	photoId: pId,
-	userId: userId,
-	status: st
-    });
-    console.log(pId);
-	res.redirect('/photos/' + pId);
-});
 
-	});
 app.listen(port, function(){
 console.log('server started on port '+ port);
 });

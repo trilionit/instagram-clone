@@ -5,9 +5,8 @@
 	</div>
 	<div class="rt-span">
 		<div class="img-placeholder">
-			<img src="../../img/<%=upl.photoValues[0].filename %>" width="100%" height='' alt="<%=upl.photoValues[0].filename %>"  />
-		</div>
-		
+			<a href="/pages/photos/<%=upl.photoValues[0].id %>"><img src="../../img/<%=upl.photoValues[0].filename %>" width="100%" height='' alt="<%=upl.photoValues[0].filename %>"  /></a>
+		</div>		
 		<div class="tag-ctn">
 		<% for(var i = 0; i < upl.tagValues.length; i++){ %>
 	<div class="new-tag">

@@ -5,24 +5,31 @@
 	</div>
 <div class="rt-span">
 	<div class="img-placeholder">
-		<img src="../img/<%=views.photoValues[0].photoName %>" width="100%" height="" alt="<%=views.photoValues[0].caption %>" />
+		<img src="../../img/<%=data.photoData.filename %>" width="100%" height="" alt="<%=data.photoData.caption %>" />
 	</div>
 	<div class="comment-container">
 		<div class="likes-container">
-			<a href="#likes" name="likes" id="likes"><span class="glyphicon glyphicon-heart-empty likes"></span></a> <span class="likes-count"><%= views.photoLikes.length %></span>
+			<% if (data.likesData.userId == data.userInfo.id ){ %>
+				<span class="glyphicon glyphicon-heart-empty likes"></span>
+			<% }else{ %>
+			<a href="/likes/userId/<%=data.userInfo[0].id %>/photoId/<%=data.photoData.id %>" name="likes" id="likes"><span class="glyphicon glyphicon-heart-empty likes"></span></a>	
+			<% } %>
+			<span class="likes-count"><%= data.likesData.length %></span>
 		</div>
-		<% for (i=0; i < views.photoComments.length ; i++){ %>
+		
+		<% for (i=0; i < data.commentData.length; i++){ %>
 		<div class="com-ctn">
-			<span class="user-ctn">@<%= views.photoUser[0].firstName %></span>
+			<span class="user-ctn">@<%= data.userInfo[0].firstName %></span>
 			<span class="user-comm">
-				<%= views.photoComments[i].text %>	
+				<%= data.commentData[i].comment %>	
 			</span>
 		</div>
 		<% } %>
+
 		<div class="comment-form">
 			<form action="/add/comment" method="post">
-			<input type="hidden" class="comment-box" name="photoid" value="<%=views.photoValues[0].photoId %>">
-			<input type="hidden" class="comment-box" name="userid" value="<%=views.photoUser[0].id %>">
+			<input type="hidden" class="comment-box" name="photoid" value="<%=data.photoData.id %>">
+			<input type="hidden" class="comment-box" name="userid" value="<%=data.userInfo[0].id %>">
 			<input type="text" class="comment-box" name="comment" placeholder="Type Your Comment Here...">
 			<input type="submit" name="submit-comment" class="submit" value="Post">
 			</form>

@@ -1,20 +1,23 @@
 {
   "development": {
-    "storage": "table.db",
-    "database": "database_development",
+    "username": "postgres",
+    "password": 123456,
+    "database": "instagram",
     "host": "127.0.0.1",
-    "dialect": "sqlite"
+    "dialect": "postgres"
   },
   "test": {
-    "storage": "table.db",
-    "database": "database_development",
+    "username": "postgres",
+    "password": 123456,
+    "database": "instagram_test",
     "host": "127.0.0.1",
-    "dialect": "sqlite"
+    "dialect": "postgres"
   },
   "production": {
-    "storage": "table.db",
-    "database": "database_development",
+    "username": "root",
+    "password": 123456,
+    "database": "facestagram",
     "host": "127.0.0.1",
-    "dialect": "sqlite"
+    "dialect": "postgres"
   }
 }
