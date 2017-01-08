@@ -1,17 +1,17 @@
 var express =require("express");
 var app = express();
 var port = 3000;
-var jsonfile = require('jsonfile');
-var file = './photos.json'
+
+
 var bodyParser = require('body-parser');
 var fs = require('fs');
 var multer  = require('multer');
 var upload = multer({ dest: './public/img' });
 
-var Sequelize = require('sequelize');
-// var dbUrl='postgres://instagram.db:';
-// var sequelize = new Sequelize(dbUrl);
+var passwordHash = require('password-hash');
+var session = require('express-session');
 
+var Sequelize = require('sequelize');
 var sequelize = new Sequelize('instagram', 'postgres', '123456', {
   host: 'localhost',
   port:'5432',
@@ -19,10 +19,10 @@ var sequelize = new Sequelize('instagram', 'postgres', '123456', {
 });
 app.set("view engine", "ejs");
 app.use(express.static('public'));
+
 app.use(
   bodyParser.urlencoded({extended:true })
 );
-var startTime;
 
 //create database tables
 var Users = sequelize.define('users', {
@@ -38,7 +38,6 @@ var Users = sequelize.define('users', {
 	status:Sequelize.INTEGER
 
 });
-
 var Photos = sequelize.define('photos', {
 	filename:Sequelize.STRING,
 	caption:Sequelize.TEXT
@@ -88,201 +87,108 @@ Likes.belongsTo(Photos);
 Likes.belongsTo(Users);
 sequelize.sync();
 
-//userid alt:sessionid with userid inclusive
-Users.findAll().then(function(rowUser) {
+app.use(session({
+	secret: 'dfhsdfjshururwowo',
+	resave: false,
+	saveUninitialized: true,
+}));
 
-			var userId= rowUser[0].id;
-			console.log("user ID "+ userId + " logged in");
+app.post('/first-time', function (req, res){
+	startTime=new Date();
+	console.log("first-time page started @" + startTime);
 
+	var firstName=req.body.firstName;
+	var lastName=req.body.lastName;
+	var email=req.body.email;
+	var password=req.body.password;
+	var confirmPassword=req.body.confirmPassword;
+	//console.log("firstName:"+ firstName + " lastName:" + lastName +" email:" + email + " password:" + password + " confirmPassword:" + confirmPassword)
+	var hashedPassword = passwordHash.generate(password);
+	var confirmHashedPassword = passwordHash.generate(confirmPassword);
+
+	if(hashedPassword != confirmHashedPassword){
+
+		res.redirect('sign-up')
+	}else{
+
+	//check if not exist
+		Users.findAll({where: {email:email}}).then(function (rowUser){
+			if(rowUser.length ==0){
+
+			//create if not exist
+
+				Users.create({
+					firstName: firstName,
+					lastName: lastName,
+					email: email,
+					password: hashedPassword,
+					status: 1
+				});
+
+			}	else{
+				var userId= rowUser[0].id;
+				session.user= userId;
+				res.redirect('/');
+			}	
+		});
+			
+	}
+});
 
 app.get('/', function (req, res){
-	startTime=new Date();
-	console.log("index page started @" + startTime);
-	Photos.findAll().then(function(query) {
-	// console.log("ID | CAPTION | FILENAME ");
-	// console.log(query[0].id + " | " + query[0].caption + " | " + query[0].filename);
+	if(!session.user){
+		res.redirect('/login')
+	}else{
 
-	res.render('index', {upl:query});
-		});
-});
-//POST ROUTES
-//----------- Upload Photos ---------------------------------
-app.post('/uploads', upload.single('img'), function (req, res) {
-	var fileName=req.file;
-	var imgName=fileName.filename;
-	var  mimetype=fileName.mimetype;
-	console.log(mimetype);
-	var ext;
-		if (mimetype== "image/jpeg" ||  mimetype== "image/jpg"){
-		ext="jpg";
-		}
-		else if(mimetype== "image/png"){
-			ext="png";
-		}
-		else if(mimetype== "image/gif"){
-			ext="gif";
-		} 
-
-	var newFileName= imgName  +"."+ ext;
-	fs.rename(__dirname +'/public/img/' + imgName, __dirname +'/public/img/'+ newFileName , (err) => {
-		if (err) throw err;
-		console.log('rename completed as ' + newFileName);
+		Photos.findAll().then(function(query) {		
+			res.render('index', {upl:query});
 		});
 
-	
-	//insert into db
-	//	sequelize.sync().then(function(){
-Photos.create({
-filename: newFileName,
-userId:userId,
-caption: req.body.caption
-	}).then(function(){
-	Photos.findAll().then(function(query){
-		return photoId= query[0].id;
-	}).then(function(){
-		if(!req.body.tag){
- 			tagName="photo";
- 		}
- 		else{
- 			tagName= req.body.tag;
- 		}
-		Tags.create({
-		    tagName: tagName,
-		    photoId:photoId
-	});
+	}
 
- 	
-	res.redirect('/pages/uploaded/'+photoId); 
-			});
-	});
-});
-
-
-app.post('/add', function (req, res){
-	var newTag= req.body.tag;
-	var pId=req.body.photoid;
-	console.log(pId + " " + newTag);
- 	Tags.create({
-	tagName: newTag,
-	photoId: pId
-    });
-	res.redirect('/pages/uploaded/'+ pId);
-});
-
-app.post('/add/comment', function (req, res){
-	var newComment= req.body.comment;
-	var pId=req.body.photoid;
-	var userId=req.body.userid;
-	var st=1;
-	console.log(pId + " " + userId + " " + newComment);
-	 	Comments.create({
-			comment: newComment,
-			photoId: pId,
-			userId: userId,
-			status: st
-	    });
-    console.log(pId);
-	res.redirect('/pages/photos/' + pId);
-	});
-});
-
-
-// GET ROUTERS
-
-app.get('/likes/userId/:id/photoId/:pId', function (req, res){
-	var uId=req.params.id;
-	var pId = req.params.pId;
-	var liked=1;
-	 	Likes.create({
-			liked: liked,
-			photoId: pId,
-			userId: uId
-	    });
-    console.log("done");
-	res.redirect('/pages/photos/' + pId);
-});
-
-app.get('/pages/uploaded/:id', function (req, res){
-	var photoId = req.params.id;
-	console.log(photoId);
-	var hub={}
-	Photos.findAll({where:{id:photoId}}).then(function(photoQuery){
-	console.log(photoQuery[0].filename);
-		hub.photoValues =[]
-				var vals ={
-				id:photoQuery[0].id,
-				filename:photoQuery[0].filename,
-				caption:photoQuery[0].caption
-			}
-		hub.photoValues.push(vals);
-		console.log(hub);	
-	Tags.findAll({where:{photoId:photoQuery[0].id}}).then(function(tagQuery){
-		//console.log(tagQuery);
-		hub.tagValues = []
-		var vals={}
-		for (var i =0; i < tagQuery.length; i++) {
-			vals = {
-			id:tagQuery[i].id,
-			tagName:tagQuery[i].tagName
-		}
-		hub.tagValues.push(vals);
-		}
 		
-
-		console.log(hub);
-		res.render('hub', {upl:hub});
-		});
-	});	
 });
 
+app.post('/login', function (req, res){
+	//userid alt:sessionid with userid inclusive
 
-app.get('/pages/photos', function (req, res){
-	startTime=new Date();
-	console.log("1. photos page started @" + startTime);
-	Photos.findAll().then(function(photoQuery) {
-	console.log("2. " + photoQuery);
-	res.render('photos', {upl:photoQuery});
-	});
-});
-
-app.get('/pages/photos/:id', function (req, res){
-	//show photos with comments
-	//1. photo with id :id
-	// 2. all comments associated with id :id
-	//likes associated with photo
-	var photoId=req.params.id;
-	var photoData = []
-	Photos.findOne({
-		where:{id: photoId}, 
-		attributes: ['id','userId','filename', 'caption', 'createdAt']
-	}).then(function (rowPhotos){
-			Comments.findAll({
-				where: {photoId:photoId}
-			}).then(function (rowComments){
-					Likes.findAll({
-						where:	{photoId: photoId}
-					}).then(function (rowLikes){
-						Users.findAll({
-							where:	{id: rowPhotos.userId}
-						}).then(function (userInfo){
-
-			var data= {
-				photoData: rowPhotos,
-				commentData: rowComments,
-				likesData: rowLikes,
-				userInfo:userInfo
-			}
-			console.log("Likes " + data.likesData.length);
+	var email=req.body.email;
+	var password=req.body.password;
+	console.log("Login requested for " + email + " and password" + password)
+	
+		Users.findAll({where:{email:email}}).then(function(rowUser) {
+			console.log(rowUser[0].password)
+			var passwordVerify = passwordHash.verify(password, rowUser[0].password)
+				if(!passwordVerify){
+					console.log(passwordVerify);
+					res.redirect('/')	
+				}
+				else{
+					var userId= rowUser[0].id;
+					session.user= userId;
+					console.log(session.user)
+					console.log("user ID "+ userId + " logged in");
+					res.redirect('/')
+				}
 			
-			res.render('views', {data:data})
-
-						})
-
-					})
-			})	
-	})
+		});
 
 });
+
+
+app.get('/login', function (req, res){
+	if(session.user){
+		res.redirect('/')
+
+	}else{
+		res.render('login');
+	}
+});
+
+app.get('/sign-up', function (req, res){
+		res.render('sign-up');
+});
+
 
 
 app.listen(port, function(){
