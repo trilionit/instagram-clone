@@ -11,6 +11,7 @@ var upload = multer({ dest: './public/img' });
 var passwordHash = require('password-hash');
 var session = require('express-session');
 
+
 var Sequelize = require('sequelize');
 var sequelize = new Sequelize('instagram', 'postgres', '123456', {
   host: 'localhost',
@@ -24,7 +25,13 @@ app.use(
   bodyParser.urlencoded({extended:true })
 );
 
-//create database tables
+app.use(session({
+	secret: 'dfhsdfjshururwowo',
+	resave: false,
+	saveUninitialized: true,
+}));
+
+//create database tables -{work in progress put sequelize in models}
 var Users = sequelize.define('users', {
 	firstName:Sequelize.STRING,
 	lastName:Sequelize.STRING,
@@ -87,11 +94,6 @@ Likes.belongsTo(Photos);
 Likes.belongsTo(Users);
 sequelize.sync();
 
-app.use(session({
-	secret: 'dfhsdfjshururwowo',
-	resave: false,
-	saveUninitialized: true,
-}));
 
 app.post('/first-time', function (req, res){
 	startTime=new Date();
@@ -111,79 +113,90 @@ app.post('/first-time', function (req, res){
 		res.redirect('sign-up')
 	}else{
 
-	//check if not exist
-		Users.findAll({where: {email:email}}).then(function (rowUser){
-			if(rowUser.length ==0){
+//check if not exist
+	Users.findAll({where: {email:email}}).then(function (rowUser){
+		if(rowUser.length ==0){
 
-			//create if not exist
+		//create if not exist
 
-				Users.create({
-					firstName: firstName,
-					lastName: lastName,
-					email: email,
-					password: hashedPassword,
-					status: 1
-				});
+	Users.create({
+		firstName: firstName,
+		lastName: lastName,
+		email: email,
+		password: hashedPassword,
+		status: 1
+	});
 
-			}	else{
-				var userId= rowUser[0].id;
-				session.user= userId;
-				res.redirect('/');
-			}	
-		});
-			
-	}
+	}else{
+		var userId= rowUser[0].id;
+		req.session.user= userId;
+		res.redirect('/');
+	}	
+	});
+		
+}
 });
 
 app.get('/', function (req, res){
-	if(!session.user){
-		res.redirect('/login')
-	}else{
+if(!req.session.user){
+	res.redirect('/login')
+}else{
+	console.log("session: "+ req.session.user);
+	Photos.findAll().then(function(query) {		
+		res.render('index', {upl:query});
+	});
 
-		Photos.findAll().then(function(query) {		
-			res.render('index', {upl:query});
-		});
+}
 
-	}
-
-		
+	
 });
 
 app.post('/login', function (req, res){
 	//userid alt:sessionid with userid inclusive
 
-	var email=req.body.email;
-	var password=req.body.password;
-	console.log("Login requested for " + email + " and password" + password)
+var email=req.body.email;
+var password=req.body.password;
+console.log("Login requested for " + email + " and password" + password)
+
+Users.findAll({where:{email:email}}).then(function(rowUser) {
+	console.log(rowUser[0].password)
+	var passwordVerify = passwordHash.verify(password, rowUser[0].password)
+		if(!passwordVerify){
+			console.log(passwordVerify);
+			res.redirect('/')	
+		}
+		else{
+			var userId= rowUser[0].id;
+			req.session.user= userId;
+			console.log("session: "+ req.session.user);
+			console.log("user ID "+ userId + " logged in");
+			res.redirect('/')
+		}
 	
-		Users.findAll({where:{email:email}}).then(function(rowUser) {
-			console.log(rowUser[0].password)
-			var passwordVerify = passwordHash.verify(password, rowUser[0].password)
-				if(!passwordVerify){
-					console.log(passwordVerify);
-					res.redirect('/')	
-				}
-				else{
-					var userId= rowUser[0].id;
-					session.user= userId;
-					console.log(session.user)
-					console.log("user ID "+ userId + " logged in");
-					res.redirect('/')
-				}
-			
-		});
+});
 
 });
 
 
 app.get('/login', function (req, res){
-	if(session.user){
+	if(req.session.user){
 		res.redirect('/')
 
 	}else{
 		res.render('login');
 	}
 });
+
+app.get('/logout', function (req, res){
+	console.log("session: "+ req.session.id);
+	req.session.destroy(function(err) {
+  // cannot access session here
+})
+
+	
+	res.redirect('/login')
+ 
+})
 
 app.get('/sign-up', function (req, res){
 		res.render('sign-up');
