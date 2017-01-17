@@ -1,49 +1,55 @@
-$("form#register").submit(function(e) {
-	e.preventDefault();
-	var	email= $(this).find("[type=email]");
-	var password= $(this).find("[type=password]");
-	var errorMessage ="Important";
-	var emailAddress = email.val();
-
-//validate email
-// http://stackoverflow.com/questions/2507030/email-validation-using-jquery
-
-function validateEmail($email) {
- var emailRegExp = /^([\w-\.]+@([\w-]+\.)+[\w-]{2, 6})?$/;
-  return emailRegExp.test( $email );
-}
-
-	//check required fields not empty
-
-	if (email.val()==""){
-		email.addClass("input-error");
-		$(".full-element span").html(errorMessage);
+$(function(){
+	var getStatus = function(status) {
+	var statusClasses ={
+		"NOT_FOUND_EMAIL": "wrong",
+		"INCORRECT_PASSWORD": "wrong",
+		"ERROR": "error"
 	}
-	//validate email
+	return statusClasses[status];
+	}
+
 	
-	else if(!validateEmail(emailAddress)){
-		email.addClass("input-error");
-		errorMessage="Enter a valid Email Address";
-		$(".full-element span#email").html(errorMessage);
-	}
 
-	else if (password.val()==""){
-		password.addClass("input-error");
-		$(".full-element span").html(errorMessage);
-	}
-	
-	else{
-		data={
-		email:emailAddress,
-		password:password.val()
+	$("#login").submit(function(event){
+
+		event.preventDefault();
+
+		console.log("submitted");
+
+		var form = event.target;
+		var dataUrl = form.action;
+		var email = $(form).find("input[name=email]");
+		var pass = $(form).find("input[name=password]")
+		var emailAddress = email.val();
+		var password = pass.val();
+		
+		var sendData={
+			email:emailAddress,
+			password: password
 		}
 
-		$.ajax({
-		  type: "POST",
-		  url: "/login",
-		  data: data
-		});
+		$.post(dataUrl, sendData, function(data, status){
+			console.log(status + "-> retrievedData: "+ data.message);
+			var cssClass = getStatus(data.status);
 
-	}
+			if(data.status =="SUCCESS"){
+				var loggedUrl = "/"
+				window.location.href = '/'
+			}else{
 
-});
+			console.log(cssClass);
+			$("#message").text(data.message)
+			$(pass).removeClass("success").removeClass("wrong").removeClass("error")
+			.addClass(cssClass);
+		}
+		})
+		
+
+		
+		
+
+		
+		
+
+	})
+})

@@ -1,23 +1,19 @@
+"use strict"
 var express =require("express");
 var app = express();
 var port = 3000;
-
-
+var Sequelize = require('sequelize');
 var bodyParser = require('body-parser');
-var fs = require('fs');
 var multer  = require('multer');
 var upload = multer({ dest: './public/img' });
-
-var passwordHash = require('password-hash');
 var session = require('express-session');
-
-
-var Sequelize = require('sequelize');
+var passwordHash = require('password-hash');
 var sequelize = new Sequelize('instagram', 'postgres', '123456', {
   host: 'localhost',
   port:'5432',
   dialect:'postgres'
 });
+//var belongsTo = require("./models/belongsTo");
 app.set("view engine", "ejs");
 app.use(express.static('public'));
 
@@ -62,29 +58,6 @@ var Tags = sequelize.define('tags', {
 var Likes = sequelize.define('likes', {
 	liked:Sequelize.INTEGER
 });
-
-// Photos.addIndex('');
-// Comments.addIndex();
-// Tags.addIndex();
-//dummy user
-// Users.create({
-// 	firstName: 'Prince',
-// 	lastName: 'Osei',
-// 	email: 'prince@trilionit.com',
-// 	password: '123456',
-// 	address: '126 Port Ave',
-// 	city: 'Elizabeth',
-// 	zipcode: '07206',
-// 	phone: '908-344-2963',	
-// 	status: 1
-//     });
-
-//dummy Likes
-// Likes.create({
-// 	userId: 'Prince',
-// 	photoId: 'Osei',
-// 	liked: 'prince@trilionit.com',
-//     });
 
 Photos.belongsTo(Users);
 Comments.belongsTo(Users);
@@ -152,28 +125,64 @@ if(!req.session.user){
 });
 
 app.post('/login', function (req, res){
-	//userid alt:sessionid with userid inclusive
 
-var email=req.body.email;
-var password=req.body.password;
-console.log("Login requested for " + email + " and password" + password)
+let email=req.body.email;
+let password=req.body.password;
 
-Users.findAll({where:{email:email}}).then(function(rowUser) {
-	console.log(rowUser[0].password)
-	var passwordVerify = passwordHash.verify(password, rowUser[0].password)
-		if(!passwordVerify){
-			console.log(passwordVerify);
-			res.redirect('/')	
+//console.log("Login requested for " + email)
+
+Users.count({where:{email:email}}).then(function (count){
+	let responseObject;
+	if(count !=0){
+		console.log("user exists");
+		//continue checking and creating
+		Users.findAll({where:{email:email}}).then(function (rowUser){
+			let rowPassword= rowUser[0].password;
+			console.log("RowPassword: " +rowPassword);
+			let passwordVerify = passwordHash.verify(password, rowPassword);
+			console.log("Password Verify: " +passwordVerify);
+			if(!passwordVerify){
+				 responseObject= {
+					input:"PASSWORD",
+					status:"INCORRECT_PASSWORD",
+					message:"Password is incorrect"
+					}
+				console.log("Incorrect P?W MSG: " + responseObject.message);
+				res.json(responseObject);
+
+
+			}else{
+				 responseObject= {
+					input:"NULL",
+					status:"SUCCESS",
+					message:"Successfully logged in"
+					}
+				console.log(responseObject.message);
+				var userId= rowUser[0].id;
+				req.session.user= userId;
+				res.json(responseObject);
+			}
+
+		});
+	}
+	else{
+
+		 responseObject= {
+			input:"EMAIL",
+			status:"NOT_FOUND",
+			message:"No User Found. Check your Email and try again"
 		}
-		else{
-			var userId= rowUser[0].id;
-			req.session.user= userId;
-			console.log("session: "+ req.session.user);
-			console.log("user ID "+ userId + " logged in");
-			res.redirect('/')
-		}
-	
+
+
+		console.log("no user found")
+		res.json(responseObject);
+
+	}
 });
+
+	
+
+	
 
 });
 
