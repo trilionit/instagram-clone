@@ -8,7 +8,7 @@ var multer  = require('multer');
 var upload = multer({ dest: './public/img' });
 var session = require('express-session');
 var passwordHash = require('password-hash');
-var sequelize = new Sequelize('blog', 'postgres', '123456', {
+var sequelize = new Sequelize('instagram', 'postgres', '123456', {
   host: 'localhost',
   port:'5432',
   dialect:'postgres'
@@ -67,7 +67,7 @@ Comments.belongsTo(Photos);
 Tags.belongsTo(Photos);
 Likes.belongsTo(Photos);
 Likes.belongsTo(Users);
-sequelize.sync();
+sequelize.sync({force:true});
 
 
 app.post('/first-time', function (req, res){
@@ -84,11 +84,23 @@ app.post('/first-time', function (req, res){
 	var hashedPassword = passwordHash.generate(password);
 	var confirmHashedPassword = passwordHash.generate(confirmPassword);
 
+	if(hashedPassword != confirmHashedPassword){
+		//password mis-match
+		responseObject= {
+			input:"PASSWORD",
+			status:"MIS-MATCH",
+			message:"Passwords did not match. Try again"
+		}
+		console.log("Incorrect P?W MSG: " + responseObject.message);
+		res.json(responseObject);
+	}else{
+
 //check if not exist
 	Users.findAll({where: {email:email}}).then(function (rowUser){
 		if(rowUser.length ==0){
 
 		//create if not exist
+
 	Users.create({
 		firstName: firstName,
 		lastName: lastName,
@@ -96,7 +108,7 @@ app.post('/first-time', function (req, res){
 		password: hashedPassword,
 		status: 1
 	}).then(
-	Users.findAll({
+	Users.findaAll({
 		where:{email:email}
 	}).then(function (rowUser){
 		var userId= rowUser[0].id;
@@ -121,8 +133,22 @@ app.post('/first-time', function (req, res){
 	}	
 	});
 		
+}
 });
 
+app.get('/', function (req, res){
+if(!req.session.user){
+	res.redirect('/login')
+}else{
+	console.log("session: "+ req.session.user);
+	Photos.findAll().then(function(query) {		
+		res.render('index', {upl:query});
+	});
+
+}
+
+	
+});
 
 app.post('/login', function (req, res){
 
@@ -188,23 +214,6 @@ Users.count({where:{email:email}}).then(function (count){
 
 });
 
-app.get('/', function (req, res){
-if(!req.session.user){
-	res.redirect('/login');
-}else{
-	console.log("session: "+ req.session.user);
-	Photos.findAll().then(function(query) {
-		var header={
-			title:"Home | My Insta Posts"
-		}
-		
-		res.render('index', {upl:query, header:header});
-	});
-
-}
-
-	
-});
 
 app.get('/login', function (req, res){
 	if(req.session.user){
@@ -229,18 +238,6 @@ app.get('/logout', function (req, res){
 app.get('/register', function (req, res){
 
 		res.render('sign-up');
-});
-
-app.get('/profile', function (req, res){
-		if(!req.session.user){
-		res.redirect('/login')
-
-	}else{
-		var header={
-			title:"My Profile"
-		}
-		res.render('edit-profile', {header:header});
-	}
 });
 
 app.get('/pages/view', function (req, res){

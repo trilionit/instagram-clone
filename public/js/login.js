@@ -33,9 +33,19 @@ $(function(){
 			var cssClass = getStatus(data.status);
 
 			if(data.status =="SUCCESS"){
-				var loggedUrl = "/"
 				window.location.href = '/'
-			}else{
+			}
+			else if(data.status =="NOT_FOUND"){
+				//user not found. Add message to try again or go to register page
+				$("#message").text(data.message)
+				$(pass).removeClass("success").removeClass("wrong").removeClass("error")
+				.addClass(cssClass);
+
+				//display register link
+				$("#register").show();
+
+			}
+			else{
 
 			console.log(cssClass);
 			$("#message").text(data.message)
